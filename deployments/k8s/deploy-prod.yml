@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ntc-psbt
+spec:
+  selector:
+    matchLabels:
+      app: ntc-psbt
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ntc-psbt
+    spec:
+      containers:
+        - name: ntc-psbt
+          image: gcr.io/pineappleworkshop/ntc-psbt:0.0.0
+          env:
+            - name: ENV
+              value: "prod"
