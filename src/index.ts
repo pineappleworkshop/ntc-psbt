@@ -98,6 +98,10 @@ router.post("/psbt", async (ctx: any, next: any) => {
       tx.addOutputAddress(output.addr, BigInt(output.value), network)
     }
   }
+
+  const fee = tx.fee;
+
+  console.log(fee)
   
   const psbt = tx.toPSBT(0)
   const psbt64 = base64.encode(psbt)
