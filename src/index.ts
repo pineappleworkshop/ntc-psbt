@@ -117,7 +117,6 @@ router.post("/psbt/sign", async (ctx: any, next: any) => {
     for (const idx of signer.inputs) {
       const privKeyB = hexToUint8Array(signer.privateKey);
       tx.signIdx(privKeyB, idx, [btc.SignatureHash.SINGLE]);
-      tx.signIdx(privKeyB, idx);
     }
   }
 
