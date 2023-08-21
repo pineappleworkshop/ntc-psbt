@@ -1,0 +1,128 @@
+version: 2.1
+
+orbs:
+  docker: circleci/docker@1.2.1
+  gcp-gke: circleci/gcp-gke@1.1.0
+  gcp-gcr: circleci/gcp-gcr@0.12.0
+
+jobs:
+  build-push:
+    description: Build and push docker image to gcr
+    executor: gcp-gcr/default
+    parameters:
+      image:
+        type: string
+      tag:
+        type: string
+      registry-url:
+        type: string
+      env_file:
+        description: |
+          Name of .env to use for build
+        type: string
+        default: ""
+    steps:
+      - checkout
+      - gcp-gcr/gcr-auth
+      - run: echo $<< parameters.env_file >> | base64 -d > ./.env
+      - gcp-gcr/build-image:
+          image: << parameters.image >>
+          tag: << parameters.tag >>
+          no_output_timeout: 20m
+          registry-url: << parameters.registry-url >>
+      - gcp-gcr/push-image:
+          digest-path: /tmp/digest.txt
+          image: << parameters.image >>
+          tag: << parameters.tag >>
+          registry-url: << parameters.registry-url >>
+      - run:
+          command: |
+              echo "Digest is: $(</tmp/digest.txt)"
+
+  deploy:
+    description: Deploy application to Google Kubernetes Engine
+    machine: true
+    parameters:
+      cluster:
+        description: |
+          Name of gke cluster
+        type: string
+      container:
+        description: |
+          Name of docker container with organization
+        type: string
+      deployment:
+        description: |
+          Name of k8 deployment
+        type: string
+      image:
+        description: |
+          Name of docker image with organization
+        type: string
+      tag:
+        description: |
+          Docker image tag
+        type: string
+      namespace:
+        description: |
+          K8 namespace
+        type: string
+    steps:
+      - gcp-gke/install
+      - gcp-gke/update-kubeconfig-with-credentials:
+          cluster: << parameters.cluster >>
+          perform-login: true
+      - gcp-gke/rollout-image:
+          cluster: << parameters.cluster >>
+          container: << parameters.container >>
+          deployment: << parameters.deployment >>
+          image: << parameters.image >>
+          tag: << parameters.tag >>
+          namespace: << parameters.namespace >>
+
+  # test:
+  #   description: Run integration tests after deployment is finished
+  #   docker:
+  #     - image: circleci/golang:latest
+  #   parameters:
+  #     environment:
+  #       description: |
+  #         The environment to test
+  #       type: string
+  #   steps:
+  #     - checkout
+  #     - run: make test-<< parameters.environment >>
+
+workflows:
+  docker-build-push-deploy-dev:
+    jobs:
+      - build-push:
+          env_file: "ENV_FILE_dev"
+          image: ntc-psbt
+          tag: 0.0.0
+          registry-url: gcr.io
+          filters:
+            branches:
+              only:
+                - dev
+      - deploy:
+          cluster: pw-dev
+          container: ntc-psbt
+          deployment: ntc-psbt
+          image: gcr.io/pineappleworkshop/ntc-psbt
+          tag: 0.0.0
+          namespace: default
+          filters:
+             branches:
+               only:
+                 - dev
+          requires:
+            - build-push
+      # - test:
+      #     environment: dev
+      #     filters:
+      #       branches:
+      #         only:
+      #           - dev
+      #     requires:
+      #       - deploy

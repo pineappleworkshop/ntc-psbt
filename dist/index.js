@@ -49,24 +49,6 @@ const parseInput = async (network, input) => {
         const publicKey = hex.decode(input.public_key);
         const p2wpkh = btc.p2wpkh(publicKey, network);
         const p2sh = btc.p2sh(p2wpkh, network);
-        console.log("=======================");
-        console.log(uint8ArrayToHex(p2sh.script));
-        console.log("=======================");
-        console.log(p2sh.redeemScript ? uint8ArrayToHex(p2sh.redeemScript) : null);
-        console.log("=======================");
-        console.log(p2sh.witnessScript);
-        console.log("=======================");
-        console.log({
-            txid: input.tx_id,
-            index: input.index,
-            witnessUtxo: {
-                script: p2sh.script ? p2sh.script : Buffer.alloc(0),
-                amount: BigInt(input.witness_utxo.amount),
-            },
-            redeemScript: p2sh.redeemScript ? p2sh.redeemScript : Buffer.alloc(0),
-            witnessScript: p2sh.witnessScript,
-        });
-        console.log("=======================");
         return {
             txid: input.tx_id,
             index: input.index,
@@ -76,6 +58,7 @@ const parseInput = async (network, input) => {
             },
             redeemScript: p2sh.redeemScript ? p2sh.redeemScript : Buffer.alloc(0),
             witnessScript: p2sh.witnessScript,
+            sighashType: btc.SignatureHash.SINGLE,
         };
     }
     else {
@@ -86,9 +69,6 @@ router.post("/psbt", async (ctx, next) => {
     const psbtReq = ctx.request.body;
     const network = btc.NETWORK;
     const tx = new btc.Transaction();
-    console.log("===========================");
-    console.log(psbtReq);
-    console.log("===========================");
     for (const key in psbtReq.inputs) {
         if (psbtReq.inputs.hasOwnProperty(key)) {
             const input = psbtReq.inputs[key];
@@ -113,15 +93,11 @@ router.post("/psbt/sign", async (ctx, next) => {
     const psbtSignReq = ctx.request.body;
     const psbtB = base64ToUint8Array(psbtSignReq.psbt64);
     const tx = btc.Transaction.fromPSBT(psbtB);
-    console.log("+++++++++++++++++++++++++===");
-    console.log(tx);
-    console.log("+++++++++++++++++++++++++===");
     for (const signer of psbtSignReq.signers) {
         for (const idx of signer.inputs) {
-            console.log("rick");
             const privKeyB = hexToUint8Array(signer.privateKey);
-            tx.signIdx(privKeyB, idx, [btc.SignatureHash.ALL, btc.SignatureHash.SINGLE, btc.SignatureHash.ANYONECANPAY]);
-            console.log("morty");
+            tx.signIdx(privKeyB, idx, [btc.SignatureHash.SINGLE]);
+            tx.signIdx(privKeyB, idx);
         }
     }
     tx.finalize();
