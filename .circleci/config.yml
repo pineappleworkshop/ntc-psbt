@@ -70,7 +70,7 @@ workflows:
     jobs:
       - gcp-gcr/build-and-push-image:
           image: ntc-psbt
-          tag: 0.0.1
+          tag: 0.0.2
           registry-url: gcr.io
           context: ntc-psbt-dev
           filters:
@@ -82,7 +82,7 @@ workflows:
           container: ntc-psbt
           deployment: ntc-psbt
           image: gcr.io/pineappleworkshop/ntc-psbt
-          tag: 0.0.1
+          tag: 0.0.2
           namespace: default
           filters:
             branches:
@@ -98,7 +98,7 @@ workflows:
           container: ntc-psbt
           deployment: ntc-psbt
           image: gcr.io/pineappleworkshop/ntc-psbt
-          tag: 0.0.1
+          tag: 0.0.2
           namespace: ntc
           context: ntc-psbt-prod
           filters:

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: ntc-psbt
-          image: gcr.io/pineappleworkshop/ntc-psbt:0.0.1
+          image: gcr.io/pineappleworkshop/ntc-psbt:0.0.2
           env:
             - name: ENV
               value: "prod"

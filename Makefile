@@ -1,5 +1,5 @@
 service := ntc-psbt
-version := 0.0.1
+version := 0.0.2
 docker_org := pineappleworkshop
 docker-image := gcr.io/${docker_org}/${service}:${version}
 root := $(abspath $(shell pwd))

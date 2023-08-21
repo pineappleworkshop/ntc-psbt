@@ -58,7 +58,7 @@ const parseInput = async (network: any, input: Input) => {
       tapInternalKey: publickey,
       sighashType: btc.SignatureHash.SINGLE,
     }
-  } else if (input.type === "p2sh") {
+  } else if (input.type === "p2wpkh") {
     const publicKey = hex.decode(input.public_key);
     const p2wpkh = btc.p2wpkh(publicKey, network);
     const p2sh = btc.p2sh(p2wpkh, network);
@@ -99,9 +99,9 @@ router.post("/psbt", async (ctx: any, next: any) => {
     }
   }
 
-  const fee = tx.fee;
 
-  console.log(fee)
+  console.log(tx.fee)
+//   console.log(tx.vsize)
   
   const psbt = tx.toPSBT(0)
   const psbt64 = base64.encode(psbt)
