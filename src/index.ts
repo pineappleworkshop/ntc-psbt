@@ -31,9 +31,7 @@ function hexToUint8Array(hex: string): Uint8Array {
     if (hex.length % 2 !== 0) {
         throw new Error('Invalid hex string');
     }
-
     const uint8Array = new Uint8Array(hex.length / 2);
-
     for (let i = 0; i < hex.length; i += 2) {
         uint8Array[i / 2] = parseInt(hex.substr(i, 2), 16);
     }
@@ -118,7 +116,8 @@ router.post("/psbt/sign", async (ctx: any, next: any) => {
   for (const signer of psbtSignReq.signers) {
     for (const idx of signer.inputs) {
       const privKeyB = hexToUint8Array(signer.privateKey);
-      tx.signIdx(privKeyB, idx, [btc.SignatureHash.SINGLE, btc.SignatureHash.ANYONECANPAY]);
+      tx.signIdx(privKeyB, idx, [btc.SignatureHash.SINGLE]);
+      tx.signIdx(privKeyB, idx);
     }
   }
 
